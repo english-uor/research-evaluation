@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>فۆرمی هەڵسەنگاندنی توێژینەوە</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --primary:       #01696f;
+    --primary-hover: #0c4e54;
+    --bg:            #f5f5f2;
+    --surface:       #ffffff;
+    --border:        #d0cfc8;
+    --text:          #1a1a18;
+    --muted:         #666;
+    --error:         #c0392b;
+    --success:       #1a7a40;
+    --radius:        8px;
+    --shadow:        0 2px 12px rgba(0,0,0,0.10);
+  }
+  body {
+    font-family: 'Segoe UI', 'Arial', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    direction: rtl;
+  }
+  .header {
+    background: var(--primary);
+    color: #fff;
+    padding: 16px 24px;
+    text-align: center;
+  }
+  .header h1 { font-size: 1.25rem; font-weight: 700; }
+  .header p  { font-size: 0.85rem; opacity: 0.85; margin-top: 2px; }
+  .container {
+    max-width: 800px;
+    margin: 28px auto;
+    padding: 0 16px 48px;
+  }
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 28px 32px;
+    margin-bottom: 20px;
+  }
+  .step-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--primary);
+    border-bottom: 2px solid var(--primary);
+    padding-bottom: 8px;
+    margin-bottom: 20px;
+  }
+  label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+    font-size: 0.92rem;
+  }
+  select, input[type="text"], input[type="number"], input[type="password"] {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    direction: rtl;
+    background: #fff;
+    color: var(--text);
+    margin-bottom: 16px;
+    transition: border-color 0.18s;
+  }
+  select:focus, input:focus { outline: none; border-color: var(--primary); }
+  .btn {
+    display: inline-block;
+    padding: 10px 26px;
+    border-radius: 6px;
+    font-size: 0.94rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: background 0.18s, opacity 0.18s;
+    font-family: inherit;
+  }
+  .btn-primary   { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-hover); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-secondary { background: #e8e8e4; color: var(--text); }
+  .btn-secondary:hover { background: #d5d5d0; }
+  .btn-danger    { background: #e74c3c; color: #fff; }
+  .btn-danger:hover { background: #c0392b; }
+  .btn-success   { background: #27ae60; color: #fff; }
+  .btn-success:hover { background: #219150; }
+  .hidden { display: none !important; }
+  .role-badge {
+    display: inline-block;
+    background: #e6f4f0;
+    color: var(--primary);
+    border: 1px solid #b2d8d2;
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  /* Score table */
+  .score-section { margin-bottom: 28px; }
+  .student-header {
+    background: #e6f4f0;
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--primary);
+    margin-bottom: 12px;
+    border: 1px solid #b2d8d2;
+  }
+  table.score-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 8px;
+    direction: rtl;
+  }
+  table.score-table th, table.score-table td {
+    border: 1.5px solid #ccc;
+    padding: 7px 10px;
+    font-size: 0.875rem;
+    text-align: right;
+  }
+  table.score-table th { background: #f0f0ec; font-weight: 700; white-space: nowrap; }
+  table.score-table td:first-child { width: 36px; text-align: center; }
+  table.score-table td:last-child  { width: 96px; text-align: center; }
+  
+  table.score-table select.score-dropdown {
+    width: 68px; margin: 0; padding: 4px 2px;
+    text-align: center; font-size: 0.95rem;
+    border: 1.5px solid var(--border); border-radius: 4px;
+    direction: ltr; font-weight: bold; background: #fafafa;
+    cursor: pointer;
+  }
+
+  .total-row td { font-weight: 700; background: #f0f0ec; }
+  /* Signature */
+  .sig-wrap {
+    border: 2px dashed rgb(0,0,255);
+    border-radius: 8px;
+    padding: 10px;
+    background: #f0f4ff;
+    margin-bottom: 8px;
+  }
+  #sigCanvas {
+    display: block;
+    width: 100%;
+    height: 120px;
+    cursor: crosshair;
+    border-radius: 4px;
+    background: #fff;
+    touch-action: none;
+  }
+  .sig-actions { margin-top: 8px; display: flex; gap: 10px; align-items: center; }
+  #sigStatus { font-size: 0.85rem; color: var(--muted); }
+  #sigStatus.signed { color: var(--success); font-weight: 700; }
+  /* Success */
+  .success-box { text-align: center; padding: 36px 20px; }
+  .success-icon { font-size: 3.5rem; margin-bottom: 14px; }
+  .success-box h2 { color: var(--success); font-size: 1.4rem; margin-bottom: 10px; }
+  .success-info {
+    background: #e8f5ed; border: 1px solid #a8d5b5;
+    border-radius: 8px; padding: 14px 20px;
+    margin: 16px auto; max-width: 480px;
+    text-align: right; font-size: 0.93rem; line-height: 1.9;
+  }
+  /* Alert */
+  .alert {
+    padding: 11px 15px; border-radius: 6px;
+    margin-bottom: 14px; font-size: 0.9rem; font-weight: 600;
+  }
+  .alert-error   { background: #fde8e8; color: var(--error);  border: 1px solid #f5a0a0; }
+  .alert-success { background: #e8f5ed; color: var(--success); border: 1px solid #a0d4ae; }
+  /* Spinner */
+  .spinner-overlay {
+    position: fixed; top:0; left:0; right:0; bottom:0;
+    background: rgba(255,255,255,0.75);
+    display: flex; align-items: center; justify-content: center; z-index: 999;
+  }
+  .spinner {
+    width: 48px; height: 48px;
+    border: 5px solid #ccc; border-top-color: var(--primary);
+    border-radius: 50%; animation: spin 0.9s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  /* Tabs */
+  .tab-row {
+    display: flex; gap: 0; margin-bottom: 22px;
+    border-bottom: 2px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    padding: 10px 22px; background: none; border: none;
+    font-size: 0.95rem; font-weight: 700; cursor: pointer;
+    color: var(--muted); border-bottom: 3px solid transparent;
+    margin-bottom: -2px; font-family: inherit; transition: color 0.18s;
+  }
+  .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+  /* Admin table */
+  #adminContent { overflow-x: auto; }
+  #adminContent table { width: 100%; border-collapse: collapse; font-size: 0.83rem; margin-bottom: 20px; }
+  #adminContent th, #adminContent td {
+    border: 1px solid #ddd; padding: 7px 10px; text-align: right;
+  }
+  #adminContent th { background: #f0f0ec; font-weight: 700; }
+  #adminContent tr:nth-child(even) td { background: #fafaf8; }
+  
+  @media print {
+    body { background: #fff; }
+    .header, .tab-row, .btn, .step-title button, .spinner-overlay { display: none !important; }
+    .card { box-shadow: none; padding: 0; border: none; }
+    #adminContent table { width: 100%; }
+  }
+  
+  @media (max-width: 600px) {
+    .card { padding: 16px 12px; }
+    table.score-table th, table.score-table td { font-size: 0.78rem; padding: 5px 6px; }
+    .tab-btn { padding: 8px 12px; font-size: 0.85rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>فۆرمی هەڵسەنگاندنی توێژینەوەی کۆتایی</h1>
+  <p>زانکۆی ڕاپەڕین &mdash; کۆلێژی پەروەردەی بنەڕەت &mdash; بەشی زمانی ئینگلیزی</p>
+</div>
+
+<div class="container">
+
+  <div class="tab-row">
+    <button class="tab-btn active" onclick="switchTab('teacher')">چوونەژورەوەی مامۆستا</button>
+    <button class="tab-btn"        onclick="switchTab('admin')">بەڕێوەبەرایەتی</button>
+  </div>
+
+  <div id="teacherSection">
+
+    <div class="card" id="step1">
+      <div class="step-title">١. چوونەژورەوەی مامۆستا</div>
+      <div id="loginAlert" class="hidden"></div>
+      <label for="teacherCode">کۆدی تایبەتی مامۆستا</label>
+      <input type="password" id="teacherCode" placeholder="کۆدی تایبەتت داخڵ بکە..." style="text-align: center; font-size: 1.2rem; letter-spacing: 2px;"/>
+      <button class="btn btn-primary" onclick="doLogin()">دەستپێکردن</button>
+    </div>
+
+    <div class="card hidden" id="step2">
+      <div class="step-title" style="display:flex; justify-content:space-between; align-items:center;">
+        <span>٢. هەڵبژاردنی توێژینەوە</span>
+        <button class="btn btn-danger" style="padding: 4px 12px; font-size: 0.8rem;" onclick="logoutTeacher()">چوونەدەرەوە</button>
+      </div>
+      <div id="teacherInfoBar"></div>
+      <div id="projectAlert" class="hidden"></div>
+      <label for="projectSelect">توێژینەوەی پەیوەندیدار بە تۆوە</label>
+      <select id="projectSelect">
+        <option value="">— توێژینەوە هەڵبژێرە —</option>
+      </select>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;">
+        <button class="btn btn-primary"   onclick="loadScoreForm()">بەردەوام بە</button>
+        <button class="btn btn-secondary" onclick="goBack('step2','step1')">گەڕانەوە</button>
+      </div>
+    </div>
+
+    <div class="card hidden" id="step3">
+      <div class="step-title">٣. داڕشتنی نمرەکان</div>
+      <div id="projectInfoBar"></div>
+      <div id="scoringArea"></div>
+
+      <div style="margin-top:24px;">
+        <label>واژۆی دیجیتاڵی مامۆستا <span style="color:var(--error)">*</span> (پێویستە)</label>
+        <div class="sig-wrap">
+          <canvas id="sigCanvas" width="720" height="120"></canvas>
+        </div>
+        <div class="sig-actions">
+          <button class="btn btn-danger" onclick="clearSignature()" type="button">🗑 سڕینەوەی واژۆ</button>
+          <span id="sigStatus">واژۆ نەکراوە</span>
+        </div>
+      </div>
+
+      <div id="submitAlert" class="hidden" style="margin-top:16px;"></div>
+      <div style="margin-top:20px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+        <button class="btn btn-primary" id="submitBtn" onclick="submitForm()">
+          📨 ناردنی فۆرم و وەرگرتنی فایلی Word و PDF
+        </button>
+        <button class="btn btn-secondary" onclick="goBack('step3','step2')">گەڕانەوە</button>
+      </div>
+    </div>
+
+    <div class="card hidden" id="successPanel">
+      <div class="success-box">
+        <div class="success-icon">✅</div>
+        <h2>بە سەرکەوتوویی نێردرا!</h2>
+        <div class="success-info" id="successInfo"></div>
+        <p style="color:var(--muted);margin-top:10px;font-size:0.9rem;">
+          فایلی Word و PDF بۆ ئیمێڵت و ئیمێڵی بەش نێردرا.
+        </p>
+        <button class="btn btn-primary" style="margin-top:20px" onclick="resetAll()">فۆرمی نوێ / گەڕانەوە</button>
+      </div>
+    </div>
+
+  </div><div id="adminSection" class="hidden">
+
+    <div class="card" id="adminLogin">
+      <div class="step-title">چوونەژورەوەی بەڕێوەبەرایەتی</div>
+      <div id="adminLoginAlert" class="hidden"></div>
+      <label for="adminName">ناوی بەڕێوەبەر</label>
+      <input type="text" id="adminName" placeholder="ناوی بەڕێوەبەر"/>
+      <label for="adminCode">کۆد</label>
+      <input type="password" id="adminCode" placeholder="کۆدی بەڕێوەبەرایەتی"/>
+      <button class="btn btn-primary" onclick="doAdminLogin()">چوونەژورەوە</button>
+    </div>
+
+    <div class="card hidden" id="adminPanel">
+      <div class="step-title" style="display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 10px;">
+        <span>📊 دێسکی بەڕێوەبەر</span>
+        <button class="btn btn-danger" style="padding: 4px 12px; font-size: 0.8rem;" onclick="logoutAdmin()">دەرچوون</button>
+      </div>
+      
+      <div class="tab-row" style="margin-bottom:15px; font-size: 0.85rem; gap: 8px; border-bottom: none; flex-wrap: wrap;">
+        <button class="btn btn-primary" onclick="showAdminTab('students')">🎓 خوێندکاران (نمرە)</button>
+        <button class="btn btn-secondary" onclick="showAdminTab('history')">🕰  ناردنەکان</button>
+        <button class="btn btn-secondary" onclick="showAdminTab('missing')">⚠️ نەیناردووە</button>
+      </div>
+      
+      <div style="margin-bottom: 15px; display:flex; gap: 10px; flex-wrap: wrap;">
+        <button class="btn btn-success" style="font-size: 0.85rem; padding: 8px 14px;" onclick="downloadExcel()">📥 داگرتن بە Excel</button>
+        <button class="btn btn-secondary" style="font-size: 0.85rem; padding: 8px 14px;" onclick="window.print()">🖨️ داگرتن بە Word/PDF</button>
+      </div>
+      
+      <div id="adminContent"><p style="color:var(--muted)">چاوەڕێ بکە...</p></div>
+    </div>
+
+  </div></div><div class="spinner-overlay hidden" id="spinner">
+  <div class="spinner"></div>
+</div>
+
+<script>
+// ==========================================
+// GITHUB PAGES CONFIGURATION
+// ==========================================
+// REPLACE THIS URL WITH YOUR DEPLOYED APPS SCRIPT WEB APP URL
+const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyIKKYbmx5h61Jeom5l_vZoEUHudeH9W1t1tvZUSL02-3NutXivE2-pHybNXUzLhtpm/exec';
+
+/**
+ * Replaces google.script.run for GitHub Pages.
+ * Communicates securely via Fetch POST with the text/plain payload workaround 
+ * to prevent CORS preflight blockages by Google Apps Script.
+ */
+async function callBackend(action, parameters = {}) {
+  try {
+    const response = await fetch(GAS_WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action, parameters })
+    });
+    const result = await response.json();
+    if (result.error) throw new Error(result.error);
+    return result.data;
+  } catch (error) {
+    console.error(`Error executing ${action}:`, error);
+    throw error;
+  }
+}
+
+// ─── State ────────────────────────────────────────────────────
+var currentTeacher = null;
+var currentProjects = [];
+var sigPainting   = false;
+var sigHasData    = false;
+var currentAdminData = null;
+
+var SUPERVISOR_Q = [
+  "ئاراستەی خوێندکار بۆ ئەنجامدانی توێژینەوە لە بەدواداچوون و ڕێکخستن و کارەکانی تایبەت بە توێژینەوە.",
+  "ڕادەی پابەندبوونی خوێندکار بە کۆبوونەوەی هەفتانە لەگەڵ سەرپەرشتیار و ئەنجامدانی ئەرکی پێسپێردراو.",
+  "ڕادەی پەیوەستبوونی توێژەر بە ڕێبازی زانستی لە ئەنجامدانی توێژینەوە.",
+  "توانای ئامادەکردن و نووسینی پێشەکی و دیاریکردنی بۆشایی و گرفت لەو بوارەی کە توێژینەوەی تیادا ئەنجام دەدات.",
+  "شێوازی داڕشتنی نووسینەکان و دەربڕین و بەکارهێنانی زاراوەی زانستی تایبەت بە بواری توێژینەوەکە و هەڵسەنگاندنی زمانەوانی بۆی.",
+  "پاراستنی ئەمانەتی زانستی و ڕێژەی لێوەرگرتن.",
+  "پوختەی توێژینەوەکە گوزارشت لە ناوەڕۆکەکەی دەکات.",
+  "بەکارهێنانی سەرچاوەکان و کوالێتییان و شێوازی نووسین و ئاماژەپێکردنیان لەناو توێژینەوە و لیستی سەرچاوەکاندا.",
+  "ڕادەی بایەخدان بە ڕێکخستنی گشتی توێژینەوە و یەکانگیری و یەکگرتوویی توێژینەوەکە.",
+  "توانستی توێژەر بۆ خستنەڕووی پرسیاری گونجاو و هەڵبژاردنی شێوازی وەڵامدانەوەیان و خستنەڕووی دەرئەنجام و ڕاسپاردەکان."
+];
+
+var REVIEWER_Q = [
+  "ناونیشانی توێژینەوەکە له گەڵ ناوەڕۆکەکەی هاوتایە.",
+  "ڕادەی زانستی پلانی توێژینەوە و پەیوەست بوونی توێژەر بە ڕێبازەکەی لە ئەنجامدانی توێژینەوەدا بەدی هاتووە.",
+  "شێوازی نووسینی پوختە کە تیایدا ئامانج و گرفت و میتۆدی ئەنجامدان و خستنەڕووی دەرەنجام و ڕاسپاردەکانی توێژینەوەکە بە کورتی ئاماژەی بۆ کراوە.",
+  "ئامادەکردن و نووسینی پێشەکی و خستنەڕووی گرفت و پرسیاری توێژینەوەکە و هەڵبژاردن و گونجاندنی شێوازی دروست بۆ وەڵامدانەوەی پرسیارەکان.",
+  "خستنەڕووی تیۆری و بەستنەوەی ناونیشان و بواری توێژینەوەکە بە ڕێچکە و تیۆرە دیارەکانی ئەو بوارەی توێژینەوەی زانستی تێدا ئەنجام دەدات.",
+  "شێوازی داڕشتنی نووسینەکان و هەڵسەنگاندنی زمانەوانی بۆ توێژینەوەکە.",
+  "پاراستنی ئەمانەتی زانستی و ڕێژەی لێوەرگرتن لە توێژینەوەکەدا.",
+  "بەکارهێنانی سەرچاوەکان و کوالیتیان و شێوازی ئاماژەپێکردنیان له ناوەڕۆک و لیستی سەرچاوەکاندا.",
+  "توێژەر پابەند بووە بە خستنەڕووی دەرەنجام و ڕاسپاردەکان.",
+  "توانای گفتوگۆ و ڕادەی شارەزابوون و وەڵامدانەوەی پرسیارەکانی توێژینەوەکە."
+];
+
+function toKu(n) {
+  if (n === null || n === undefined) return "";
+  return n.toString().replace(/[0-9]/g, function(d){ return "٠١٢٣٤٥٦٧٨٩"[d]; });
+}
+
+// ─── Init ─────────────────────────────────────────────────────
+window.addEventListener("load", function() {
+  initSigPad();
+});
+
+// ─── Tabs ─────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll(".tab-btn").forEach(function(b,i) {
+    b.classList.toggle("active", (tab === "teacher" && i === 0) || (tab === "admin" && i === 1));
+  });
+  show("teacherSection", tab === "teacher");
+  show("adminSection",   tab === "admin");
+}
+
+// ─── Login ────────────────────────────────────────────────────
+function doLogin() {
+  var code = document.getElementById("teacherCode").value.trim();
+  if (!code) { showAlert("loginAlert", "تکایە کۆدی تایبەتی مامۆستا داخڵ بکە", "error"); return; }
+  
+  showSpinner(true);
+  callBackend('verifyTeacherByCode', { code: code })
+    .then(function(res) {
+      showSpinner(false);
+      if (!res.ok) { showAlert("loginAlert", res.msg, "error"); return; }
+      currentTeacher = res.teacher;
+      loadStep2();
+    })
+    .catch(function(e) {
+      showSpinner(false);
+      showAlert("loginAlert", "هەڵە لە ڕایەڵە: " + e.message, "error");
+    });
+}
+
+function logoutTeacher() {
+  currentTeacher = null;
+  currentProjects = [];
+  document.getElementById("teacherCode").value = "";
+  clearAlert("projectAlert");
+  show("step2", false); show("step3", false); show("successPanel", false);
+  show("step1", true);
+}
+
+function loadStep2() {
+  showSpinner(true);
+  callBackend('getProjectsForTeacher', { kuName: currentTeacher.kuName })
+    .then(function(projs) {
+      showSpinner(false);
+      currentProjects = projs;
+      var sel = document.getElementById("projectSelect");
+      sel.innerHTML = "<option value=''>— توێژینەوە هەڵبژێرە —</option>";
+      
+      projs.forEach(function(p, i) {
+        var opt = document.createElement("option");
+        opt.value = i;
+        var statusTxt = p.isEvaluated ? " ✅ (تەواوکراوە)" : "";
+        opt.textContent = p.title + " - " + p.myRole + statusTxt;
+        sel.appendChild(opt);
+      });
+      
+      document.getElementById("teacherInfoBar").innerHTML =
+        "<div class='role-badge'>" + currentTeacher.kuName +
+        (currentTeacher.title ? " &mdash; " + currentTeacher.title : "") + "</div>";
+        
+      if (projs.length === 0) {
+        showAlert("projectAlert", "هیچ توێژینەوەیەک بە ناوی تۆ نەدۆزرایەوە", "error");
+      } else {
+        clearAlert("projectAlert");
+      }
+      show("step1", false); show("step2", true);
+    })
+    .catch(function(e) {
+      showSpinner(false);
+      showAlert("loginAlert", "هەڵە: " + e.message, "error");
+    });
+}
+
+// ─── Step 2 → 3 ───────────────────────────────────────────────
+function loadScoreForm() {
+  var idx = parseInt(document.getElementById("projectSelect").value);
+  if (isNaN(idx)) { showAlert("projectAlert", "تکایە توێژینەوەیەک هەڵبژێرە", "error"); return; }
+  
+  var project = currentProjects[idx];
+  
+  if (project.isEvaluated) { 
+    showAlert("projectAlert", "ئەم توێژینەوەیە پێشتر لەلایەن جەنابتەوە هەڵسەنگێندراوە و تەواو بووە.", "error"); 
+    return; 
+  }
+  
+  clearAlert("projectAlert");
+  var isSup   = (project.myRole === "سەرپەرشتیار");
+  var maxQ    = isSup ? 4 : 3;
+  var qs      = isSup ? SUPERVISOR_Q : REVIEWER_Q;
+  var maxT    = isSup ? 40 : 30;
+
+  document.getElementById("projectInfoBar").innerHTML =
+    "<div class='role-badge'>" + project.myRole + "</div>" +
+    "<p style='font-size:0.88rem;color:var(--muted);margin-bottom:14px;'>" +
+    "<strong>توێژینەوە:</strong> " + project.title + "</p>";
+
+  var area = document.getElementById("scoringArea");
+  area.innerHTML = "";
+
+  project.students.forEach(function(student, si) {
+    var rows = "";
+    qs.forEach(function(q, qi) {
+      var options = "<option value=''>-</option>";
+      for (var v = 0; v <= maxQ; v += 0.5) {
+        options += "<option value='" + v + "'>" + toKu(v) + "</option>";
+      }
+      
+      rows += "<tr>" +
+        "<td>" + toKu(qi+1) + "</td>" +
+        "<td>" + q + "</td>" +
+        "<td><select class='score-dropdown' id='s" + si + "_q" + (qi+1) + "' onchange='recalc(" + si + "," + maxQ + ")'>" + options + "</select></td>" +
+        "</tr>";
+    });
+    
+    var sec = document.createElement("div");
+    sec.className = "score-section";
+    sec.innerHTML = "<div class='student-header'>&#127891; " + student + "</div>" +
+      "<table class='score-table'>" +
+      "<thead><tr><th>ژ.</th>" +
+      "<th>پێوەری هەڵسەنگاندن (هەر خاڵێک " + toKu(maxQ) + " نمرە)</th>" +
+      "<th>نمرەی بەدەستهاتوو</th></tr></thead>" +
+      "<tbody>" + rows +
+      "<tr class='total-row'>" +
+      "<td colspan='2' style='text-align:center;'>کۆی نمرەکان لە " + toKu(maxT) + "</td>" +
+      "<td id='total_" + si + "' style='text-align:center;'>٠</td>" +
+      "</tr></tbody></table>";
+    area.appendChild(sec);
+  });
+
+  clearSignature();
+  clearAlert("submitAlert");
+  show("step2", false); show("step3", true);
+}
+
+function recalc(si, maxQ) {
+  var sum = 0;
+  for (var q = 1; q <= 10; q++) {
+    var el = document.getElementById("s" + si + "_q" + q);
+    if (!el || el.value === "") continue;
+    var v = parseFloat(el.value) || 0;
+    if (v < 0)    { el.value = "0"; v = 0; }
+    if (v > maxQ) { el.value = maxQ.toString(); v = maxQ; }
+    sum += v;
+  }
+  var tot = document.getElementById("total_" + si);
+  if (tot) tot.textContent = toKu(sum % 1 === 0 ? sum : sum.toFixed(1));
+}
+
+// ─── goBack helper ────────────────────────────────────────────
+function goBack(hideId, showId) {
+  show(hideId, false);
+  show(showId, true);
+}
+
+// ─── Signature ────────────────────────────────────────────────
+function initSigPad() {
+  var canvas = document.getElementById("sigCanvas");
+  if (!canvas) return;
+  var ctx = canvas.getContext("2d");
+
+  function pos(e) {
+    var r = canvas.getBoundingClientRect();
+    var sx = canvas.width  / r.width;
+    var sy = canvas.height / r.height;
+    if (e.touches) return { x: (e.touches[0].clientX - r.left) * sx, y: (e.touches[0].clientY - r.top) * sy };
+    return { x: (e.clientX - r.left) * sx, y: (e.clientY - r.top) * sy };
+  }
+  canvas.addEventListener("mousedown",  function(e) { sigPainting = true; ctx.beginPath(); var p = pos(e); ctx.moveTo(p.x, p.y); });
+  canvas.addEventListener("mousemove",  function(e) { if (!sigPainting) return; doStroke(ctx, pos(e)); });
+  canvas.addEventListener("mouseup",    function()  { sigPainting = false; });
+  canvas.addEventListener("mouseleave", function()  { sigPainting = false; });
+  canvas.addEventListener("touchstart", function(e) { e.preventDefault(); sigPainting = true; ctx.beginPath(); var p = pos(e); ctx.moveTo(p.x, p.y); }, { passive: false });
+  canvas.addEventListener("touchmove",  function(e) { e.preventDefault(); if (!sigPainting) return; doStroke(ctx, pos(e)); }, { passive: false });
+  canvas.addEventListener("touchend",   function()  { sigPainting = false; });
+}
+
+function doStroke(ctx, p) {
+  ctx.strokeStyle = "rgb(0,0,255)";
+  ctx.lineWidth   = 2.5;
+  ctx.lineCap     = "round";
+  ctx.lineJoin    = "round";
+  ctx.lineTo(p.x, p.y);
+  ctx.stroke();
+  sigHasData = true;
+  document.getElementById("sigStatus").textContent = "✅ واژۆ کراوە";
+  document.getElementById("sigStatus").className   = "signed";
+}
+
+function clearSignature() {
+  var canvas = document.getElementById("sigCanvas");
+  if (!canvas) return;
+  canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+  sigHasData = false;
+  document.getElementById("sigStatus").textContent = "واژۆ نەکراوە";
+  document.getElementById("sigStatus").className   = "";
+}
+
+// ─── Submit ───────────────────────────────────────────────────
+function submitForm() {
+  clearAlert("submitAlert");
+  if (!sigHasData) {
+    showAlert("submitAlert", "تکایە واژۆی دیجیتاڵ بکە. واژۆ پێویستە پێش ناردن.", "error");
+    return;
+  }
+  var idx = parseInt(document.getElementById("projectSelect").value);
+  if (isNaN(idx)) return;
+  var project = currentProjects[idx];
+  var isSup   = (project.myRole === "سەرپەرشتیار");
+  var maxQ    = isSup ? 4 : 3;
+
+  var scores = [];
+  var errMsg = "";
+  project.students.forEach(function(student, si) {
+    var sc = { studentName: student };
+    var tot = 0;
+    for (var q = 1; q <= 10; q++) {
+      var el  = document.getElementById("s" + si + "_q" + q);
+      if (!el || el.value === "") { errMsg = "تکایە هەموو نمرەکانی " + student + " دیاری بکە"; break; }
+      var val = parseFloat(el.value) || 0;
+      if (val < 0 || val > maxQ) errMsg = student + ": نمرە نادروستە";
+      sc["q" + q] = val;
+      tot += val;
+    }
+    sc.total = Math.round(tot * 2) / 2;
+    scores.push(sc);
+  });
+
+  if (errMsg) { showAlert("submitAlert", errMsg, "error"); return; }
+
+  var sigDataUrl = document.getElementById("sigCanvas").toDataURL("image/png");
+  var payload = {
+    teacher:          currentTeacher,
+    project:          project,
+    myRole:           project.myRole,
+    scores:           scores,
+    submittedAt:      new Date().toISOString(),
+    signatureDataUrl: sigDataUrl
+  };
+
+  document.getElementById("submitBtn").disabled = true;
+  showSpinner(true);
+  
+  callBackend('submitEvaluation', { payload: payload })
+    .then(function(res) {
+      showSpinner(false);
+      document.getElementById("submitBtn").disabled = false;
+      if (!res.ok) { showAlert("submitAlert", "هەڵە: " + res.msg, "error"); return; }
+      renderSuccess(payload, res);
+    })
+    .catch(function(e) {
+      showSpinner(false);
+      document.getElementById("submitBtn").disabled = false;
+      showAlert("submitAlert", "هەڵە لە ناردن: " + e.message, "error");
+    });
+}
+
+function renderSuccess(payload, res) {
+  var total = res.totalStudents || payload.scores.length;
+  var max   = (payload.myRole === "سەرپەرشتیار") ? 40 : 30;
+  var html  = "<p><strong>مامۆستا:</strong> " + payload.teacher.kuName + "</p>" +
+              "<p><strong>توێژینەوە:</strong> " + payload.project.title + "</p>" +
+              "<p><strong>ڕۆڵ:</strong> " + payload.myRole + "</p>" +
+              "<p><strong>ژمارەی کۆی خوێندکاران:</strong> " + toKu(total) + "</p>" +
+              "<hr style='margin:8px 0;border-color:#cce5d5'/>";
+  payload.scores.forEach(function(s) {
+    html += "<p>&#127891; " + s.studentName + ": <strong>" + toKu(s.total) + "/" + toKu(max) + "</strong></p>";
+  });
+  document.getElementById("successInfo").innerHTML = html;
+  
+  // Set evaluated locally so they can't double-submit if they go back
+  var idx = parseInt(document.getElementById("projectSelect").value);
+  currentProjects[idx].isEvaluated = true;
+  
+  show("step3", false); show("successPanel", true);
+}
+
+function resetAll() {
+  show("successPanel", false); 
+  loadStep2(); // Go back to projects select view instead of requiring re-login
+}
+
+// ─── Admin ────────────────────────────────────────────────────
+function doAdminLogin() {
+  var name = document.getElementById("adminName").value.trim();
+  var code = document.getElementById("adminCode").value.trim();
+  if (!name || !code) { showAlert("adminLoginAlert", "تکایە هەموو خانەکان پڕ بکەوە", "error"); return; }
+  
+  showSpinner(true);
+  callBackend('verifyAdmin', { name: name, code: code })
+    .then(function(res) {
+      showSpinner(false);
+      if (!res.ok) { showAlert("adminLoginAlert", res.msg, "error"); return; }
+      show("adminLogin", false); show("adminPanel", true);
+      loadAdminData();
+    })
+    .catch(function(e) {
+      showSpinner(false);
+      showAlert("adminLoginAlert", "هەڵە: " + e.message, "error");
+    });
+}
+
+function loadAdminData() {
+  showSpinner(true);
+  callBackend('getAdminData', {})
+    .then(function(data) {
+      showSpinner(false);
+      currentAdminData = data;
+      showAdminTab('students');
+    })
+    .catch(function(e) {
+      showSpinner(false);
+      document.getElementById("adminContent").innerHTML = "<p style='color:red'>هەڵە: " + e.message + "</p>";
+    });
+}
+
+function showAdminTab(tab) {
+  if (!currentAdminData) return;
+  var html = "";
+  var dataToRender = [];
+
+  // Active tab styling
+  var buttons = document.querySelectorAll("#adminPanel .tab-btn");
+  buttons.forEach(function(b) {
+    b.classList.remove("active", "btn-primary");
+    b.classList.add("btn-secondary");
+  });
+  event.currentTarget.classList.remove("btn-secondary");
+  event.currentTarget.classList.add("btn-primary");
+
+  if (tab === 'students') {
+    html += "<h3 style='margin-bottom:10px;'>🎓 پوختەی نمرەکانی خوێندکاران</h3>";
+    dataToRender = currentAdminData.summaryRows;
+  } else if (tab === 'history') {
+    html += "<h3 style='margin-bottom:10px;'>🕰  ناردنەکان</h3>";
+    dataToRender = currentAdminData.subRows;
+  } else if (tab === 'missing') {
+    html += "<h3 style='margin-bottom:10px; color:var(--error);'>⚠️ ئەو مامۆستایانەی هەڵسەنگاندنیان نەناردووە</h3>";
+    dataToRender = currentAdminData.missingRows;
+  }
+
+  if (dataToRender && dataToRender.length > 1) {
+    html += "<table><thead><tr>";
+    dataToRender[0].forEach(function(h) { html += "<th>" + (h||"") + "</th>"; });
+    html += "</tr></thead><tbody>";
+    for (var i = 1; i < dataToRender.length; i++) {
+      html += "<tr>";
+      dataToRender[i].forEach(function(c) { html += "<td>" + (c||"") + "</td>"; });
+      html += "</tr>";
+    }
+    html += "</tbody></table>";
+  } else { html += "<p style='color:var(--muted)'>هیچ داتایەک نییە.</p>"; }
+  
+  document.getElementById("adminContent").innerHTML = html;
+}
+
+function downloadExcel() {
+  // Replace SHEET_ID with the actual spreadsheet ID directly if needed.
+  window.open('https://docs.google.com/spreadsheets/d/1GyA9ubqlNYZq_x_8-QVTRwHJaY7W9zVP8QgQLoTHbSg/export?format=xlsx', '_blank');
+}
+
+function logoutAdmin() {
+  currentAdminData = null;
+  show("adminPanel", false); show("adminLogin", true);
+  document.getElementById("adminName").value = "";
+  document.getElementById("adminCode").value = "";
+  clearAlert("adminLoginAlert");
+}
+
+// ─── Helpers ──────────────────────────────────────────────────
+function show(id, vis) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  if (vis) el.classList.remove("hidden");
+  else     el.classList.add("hidden");
+}
+function showAlert(id, msg, type) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.className = "alert alert-" + type;
+  el.textContent = msg;
+  el.classList.remove("hidden");
+}
+function clearAlert(id) {
+  var el = document.getElementById(id);
+  if (el) { el.classList.add("hidden"); el.textContent = ""; }
+}
+function showSpinner(v) {
+  var el = document.getElementById("spinner");
+  if (v) el.classList.remove("hidden");
+  else   el.classList.add("hidden");
+}
+</script>
+</body>
+</html>
